@@ -1,29 +1,120 @@
 version: '3'
 
+networks:
+  local:
+    driver: bridge
+
 services:
+  web:
+    image: 'nginx:1.15.5'
+    ports:
+      - 80:80
+      - 443:443
+    expose:
+      - 80
+      - 443
+    volumes:
+      - ./src:/usr/share/nginx/html
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/ssl:/etc/nginx/ssl
+    #links: 
+    #  - php
+    #environment: 
+      #XDEBUG_CONFIG: remote_host=host.docker.internal remote_port=9000 remote_enable=1
+    networks:
+      - local
+
+    #network_mode: host
+
   php:
     container_name: 'php74'
     # image: 'php:7.4-fpm'
     build: './php'
     volumes:
       - ./src:/usr/share/nginx/html
-
-  web:
-    image: 'nginx:1.15.5'
-    ports:
-      - 80:80
-      - 443:443
-    volumes:
-      - ./src:/usr/share/nginx/html
-      - ./nginx/conf.d:/etc/nginx/conf.d
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - /etc/hosts:/etc/hosts 
+      - ~/.ssh:/root/.ssh
+      - ~/.composer:/root/.composer
+      #- /etc/php/7.4/cli/php.ini:/usr/local/etc/php
+      - ./php/conf.d/custom-php.ini:/usr/local/etc/php/conf.d/custom-php.ini
+      - ./php/conf.d/xdebug.ini:/usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
+      - ./php/conf.d/error_reporting.ini:/usr/local/etc/php/conf.d/error_reporting.ini
+      #- ./php/cacert.pem:/usr/local/etc/openssl/cacert.pem
       - ./nginx/ssl:/etc/nginx/ssl
+      - ./php/supervisor/conf.d:/etc/supervisor/conf.d
+
+    working_dir:
+      /usr/share/nginx/html
+
+    networks:
+      - local
+    #network_mode: host
+    expose: 
+      - 9003
+
+  php71:
+    container_name: 'php71'
+    # image: 'php:7.4-fpm'
+    build: './php'
+    volumes:
+      - ./src/billing:/usr/share/nginx/html/billing
+      - /etc/hosts:/etc/hosts 
+      - ~/.ssh:/root/.ssh
+      - ~/.composer:/root/.composer
+    networks:
+      - local
+    #network_mode: host
 
   db:
-    image: 'postgres:11.0'
+    image: 'postgres:12.0'
     ports: 
       - 5432:5432
     environment:
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_USER=postgres
       - POSTGRES_DB=postgres
+    networks:
+      - local
+    #network_mode: host
+
+  redis:
+    image: "redis:alpine"
+    ports: 
+      - 6379:6379
+    expose:
+      - 6379
+    networks:
+      - local
+    #network_mode: host
+
+
+  # https://github.com/Phillaf/php-kafka-demo
+  
+  # zookeeper:
+  #   image: wurstmeister/zookeeper
+  #   ports:
+  #     - 2181:2181
+  #   networks:
+  #     - local
+
+  # kafka:
+  #   image: wurstmeister/kafka
+  #   ports:
+  #     - 9092:9092
+  #   environment:
+  #     KAFKA_ADVERTISED_HOST_NAME: kafka
+  #     KAFKA_ADVERTISED_PORT: 9092
+  #     #KAFKA_CREATE_TOPICS: "test:1:1"
+  #     KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #   networks:
+  #     - local
+
+  # rabbitqmq:
+  #   image: 'rabbitmq:latest'
+  #   ports:
+  #     - 5672:5672
+  #   networks:
+  #     - local
