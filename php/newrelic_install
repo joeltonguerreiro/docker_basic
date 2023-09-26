@@ -1,0 +1,29 @@
+#!/bin/bash
+
+extension_number=$(php -i | grep -oP '^PHP Extension => \K.*' | cut -d " " -f1)
+extension_dir=$(php -i | grep -oP '^extension_dir => \K.*' | cut -d " " -f1)
+
+apt-get update && apt-get install wget
+
+mkdir -p /opt/newrelic
+cd /opt/newrelic
+
+wget \
+    --recursive \
+    --level=1 \
+    --no-directories \
+    --accept="linux.tar.gz" \
+    https://download.newrelic.com/php_agent/release/
+
+tar -zxvpf newrelic*.tar.gz
+rm newrelic*.tar.gz
+
+cd newrelic-php5*
+
+cp -v agent/x64/newrelic-$extension_number.so $extension_dir/newrelic.so
+cp -v daemon/newrelic-daemon.x64 /usr/bin/newrelic-daemon
+
+egrep -v '^;|^$' scripts/newrelic.ini.template > $PHP_INI_DIR/conf.d/newrelic.ini
+
+mkdir -p /var/log/newrelic/
+chown www-data:www-data /var/log/newrelic/

@@ -36,3 +36,9 @@ RUN redis-server --daemonize yes
 RUN pecl install -o -f xdebug-3.1.5 \
     && docker-php-ext-enable xdebug
 
+# Install NewRelic
+COPY newrelic_init /usr/bin/newrelic_init
+COPY newrelic_install /usr/bin/newrelic_install
+
+RUN /usr/bin/newrelic_install
+RUN /usr/bin/newrelic_init

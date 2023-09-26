@@ -1,0 +1,6 @@
+#!/bin/bash
+newrelic_ini_file="$PHP_INI_DIR/conf.d/newrelic.ini"
+sed -i "s/^newrelic.license.*/newrelic.license = 2ff89ae73ab097465d576f714a81b70154004a48/" $newrelic_ini_file
+sed -i "s/^newrelic.appname.*/newrelic.appname = \"joelton_local\"/" $newrelic_ini_file
+echo 'newrelic.feature_flag = laravel_queue' >> $newrelic_ini_file
+echo 'newrelic.transaction_tracer.record_sql = "raw"' >> $newrelic_ini_file
