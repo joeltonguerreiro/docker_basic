@@ -9,10 +9,10 @@ services:
     image: 'nginx:1.15.5'
     ports:
       - 80:80
-      - 443:443
+      #- 443:443
     expose:
       - 80
-      - 443
+      #- 443
     volumes:
       - ./src:/usr/share/nginx/html
       - ./nginx/conf.d:/etc/nginx/conf.d
@@ -52,19 +52,6 @@ services:
     #network_mode: host
     expose: 
       - 9003
-
-  php71:
-    container_name: 'php71'
-    # image: 'php:7.4-fpm'
-    build: './php'
-    volumes:
-      - ./src/billing:/usr/share/nginx/html/billing
-      - /etc/hosts:/etc/hosts 
-      - ~/.ssh:/root/.ssh
-      - ~/.composer:/root/.composer
-    networks:
-      - local
-    #network_mode: host
 
   db:
     image: 'postgres:12.0'
